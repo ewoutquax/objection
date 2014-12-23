@@ -18,6 +18,16 @@ module Objection
     end
 
     private
+      def normalize_input(*args)
+        if args.any?
+          args[0].inject({}) do |out, (key, value)|
+            out.merge(key.to_sym => value)
+          end
+        else
+          {}
+        end
+      end
+
       def known_fields
         required_fields + optional_fields
       end

@@ -70,6 +70,46 @@ describe Objection do
     end
   end
 
+  context 'normalize input' do
+    let(:object) { Objection::Base.new }
+
+    it 'returns an empty hash, when no arguments are given' do
+      hash = object.send(:normalize_input)
+      expect(hash).to eq({})
+    end
+
+    it 'returns a symbolized hash, when a symbolized hash is given' do
+      input = {field_1: '1', field_2: '2'}
+      hash = object.send(:normalize_input, input)
+      expect(hash).to eq(input)
+    end
+
+    it 'returns a symbolized hash, when one symbolic is given' do
+      expected = {field_1: '1'}
+      hash = object.send(:normalize_input, field_1: '1')
+      expect(hash).to eq(expected)
+    end
+
+    it 'returns a symbolized hash, when multiple symbolics are given' do
+      expected = {field_1: '1', field_2: '2'}
+      hash = object.send(:normalize_input, field_1: '1', field_2: '2')
+      expect(hash).to eq(expected)
+    end
+
+    it 'returns a symbolized hash, when one string is given' do
+      expected = {field_1: '1'}
+      hash = object.send(:normalize_input, 'field_1' => '1')
+      expect(hash).to eq(expected)
+    end
+
+    it 'returns a symbolized hash, when a stringified hash is given' do
+      input = {'field_1' => '1', 'field_2' => '2'}
+      expected = {field_1: '1', field_2: '2'}
+      hash = object.send(:normalize_input, input)
+      expect(hash).to eq(expected)
+    end
+  end
+
   context '(un)known fields' do
     let(:obj) { build_object_for_known_fields }
 
