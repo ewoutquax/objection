@@ -2,9 +2,10 @@ require "objection/version"
 
 module Objection
   class Base
-    class ObjectionException    < Exception; end
-    class RequiredFieldsMissing < ObjectionException; end
-
+    class ObjectionException     < Exception; end
+    class RequiredFieldsMissing  < ObjectionException; end
+    class RequiredFieldMadeEmpty < ObjectionException; end
+    class UnknownFieldGiven      < ObjectionException; end
 
     def self.requires(*args)
       @required_fields = args
@@ -14,7 +15,23 @@ module Objection
     end
 
     def initialize(*args)
-      raise RequiredFieldsMissing, ':required_1, :required_2' unless required_fields.nil?
+      # raise RequiredFieldsMissing, ':required_1, :required_2' unless required_fields.nil?
+      @values = normalize_input(*args)
+    end
+
+    def method_missing(method, *args)
+      if method[-1] == '='
+        field = method[0..-2].to_sym
+        unless known_field?(field)
+          raise UnknownFieldGiven, field
+        end
+        if required_field?(field) && (args[0] == '' || args[0].nil?)
+          raise RequiredFieldMadeEmpty, field
+        end
+        @values[field] = args[0]
+      else
+        @values[method]
+      end
     end
 
     private
@@ -32,6 +49,10 @@ module Objection
         required_fields + optional_fields
       end
 
+      def known_field?(field)
+        known_fields.include?(field)
+      end
+
       def unknown_fields_present?(array_fields)
         unknown_fields(array_fields).any?
       end
@@ -44,12 +65,16 @@ module Objection
         required_fields - array_fields
       end
 
+      def required_field?(field)
+        required_fields.include?(field)
+      end
+
       def required_fields
-        self.class.instance_variable_get('@required_fields')
+        self.class.instance_variable_get('@required_fields') || []
       end
 
       def optional_fields
-        self.class.instance_variable_get('@optional_fields')
+        self.class.instance_variable_get('@optional_fields') || []
       end
   end
 end

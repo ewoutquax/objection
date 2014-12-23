@@ -24,11 +24,9 @@ describe Objection do
     let(:object) { build_object_for_required_fields }
 
     it 'can be defined and fetched' do
-      obj = DemoRequires.new(:required_1, :required_2)
-      obj_more = DemoRequiresMore.new(:required_3, :required_4)
+      obj = DemoRequires.new
+      obj_more = DemoRequiresMore.new
 
-      expect(obj).to be_kind_of(DemoRequires)
-      expect(obj).to be_kind_of(Objection::Base)
       expect(obj.send(:required_fields)).to eq([:required_1, :required_2])
       expect(obj_more.send(:required_fields)).to eq([:required_3, :required_4])
     end
@@ -36,6 +34,16 @@ describe Objection do
     it 'builds a list of missing required fields' do
       result = object.send(:missing_required_fields, [:field_1])
       expect(result).to eq([:field_2])
+    end
+
+    it 'can be changed after initialization' do
+      object.field_1 = 'new value'
+      expect(object.field_1).to eq('new value')
+    end
+
+    it 'raises an error, when a required field is blanked' do
+      expect{object.field_1 = ''}.to raise_error(Objection::Base::RequiredFieldMadeEmpty, 'field_1')
+      expect{object.field_2 = nil}.to raise_error(Objection::Base::RequiredFieldMadeEmpty, 'field_2')
     end
 
     def build_object_for_required_fields
@@ -55,6 +63,17 @@ describe Objection do
       expect(obj.send(:optional_fields)).to eq([:optional_1, :optional_2])
       expect(obj_more.send(:optional_fields)).to eq([:optional_3, :optional_4])
     end
+
+    it 'can be changed after initialization' do
+      obj = DemoOptionals.new
+      obj.optional_1 = 'value_1'
+      expect(obj.optional_1).to eq('value_1')
+    end
+
+    it 'raises an error, if an unknown field is given' do
+      obj = DemoOptionals.new
+      expect{obj.unknown_field = 'mwhoehaha'}.to raise_error(Objection::Base::UnknownFieldGiven, 'unknown_field')
+    end
   end
 
   context 'initialize' do
@@ -63,6 +82,12 @@ describe Objection do
 
       expect(obj).to be_kind_of(DemoBasic)
       expect(obj).to be_kind_of(Objection::Base)
+    end
+
+    it 'optional fields can be queried' do
+      obj = DemoOptionals.new(field_1: 'value_1', field_2: 'value_2')
+      expect(obj.field_1).to eq('value_1')
+      expect(obj.field_2).to eq('value_2')
     end
 
     it 'raises an error. when not all expected fields are supplied' do
