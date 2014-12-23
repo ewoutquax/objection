@@ -1,6 +1,6 @@
 # Objection
 
-TODO: Write a gem description
+Build a contract to your interfaces, with predefined and required fields
 
 ## Installation
 
@@ -18,7 +18,22 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Build your own class, and let it inherit from Objection::Base.
+Set required fields with the requires-command, and optional fields with the optional-command
+
+    class MyContract < ObjectionBase
+      requires :required_1, :required_2
+      optional :optional_1, :optional_2
+    end
+
+    contract = MyContract.new(required_1: 'value', required_2: 'other-value', optional_1: 'more info')
+    contract.optional_2 = 'other info'
+
+    contract.required_1 => 'value'
+    contract.optional_2 => 'other info'
+
+The gem will protect you from using unknown fields, and from suppling blank values for the required fields
+
 
 ## Contributing
 
