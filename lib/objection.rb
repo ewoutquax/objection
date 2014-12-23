@@ -13,20 +13,33 @@ module Objection
       @optional_fields = args
     end
 
-    def required_fields
-      self.class.instance_variable_get('@required_fields')
-    end
-
-    def optional_fields
-      self.class.instance_variable_get('@optional_fields')
-    end
-
     def initialize(*args)
       raise RequiredFieldsMissing, ':required_1, :required_2' unless required_fields.nil?
     end
 
-    class << self
-      attr_accessor :required_fields
-    end
+    private
+      def known_fields
+        required_fields + optional_fields
+      end
+
+      def unknown_fields_present?(array_fields)
+        unknown_fields(array_fields).any?
+      end
+
+      def unknown_fields(array_fields)
+        array_fields - known_fields
+      end
+
+      def missing_required_fields(array_fields)
+        required_fields - array_fields
+      end
+
+      def required_fields
+        self.class.instance_variable_get('@required_fields')
+      end
+
+      def optional_fields
+        self.class.instance_variable_get('@optional_fields')
+      end
   end
 end
