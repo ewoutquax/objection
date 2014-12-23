@@ -21,7 +21,7 @@ Or install it yourself as:
 Build your own class, and let it inherit from Objection::Base.
 Set required fields with the requires-command, and optional fields with the optional-command
 
-    class MyContract < ObjectionBase
+    class MyContract < Objection::Base
       requires :required_1, :required_2
       optional :optional_1, :optional_2
     end
