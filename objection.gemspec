@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Objection::VERSION
   spec.authors       = ["Ewout Quax"]
   spec.email         = ["ewout.quax@quicknet.nl"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{Declare a predefined contract for use with services}
+  spec.description   = %q{A predefined contract, with required and optional fields, for use with services.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
