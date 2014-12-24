@@ -2,10 +2,10 @@ require "objection/version"
 
 module Objection
   class Base
-    class ObjectionException     < Exception; end
-    class RequiredFieldsMissing  < ObjectionException; end
-    class RequiredFieldMadeEmpty < ObjectionException; end
-    class UnknownFieldGiven      < ObjectionException; end
+    class ObjectionException   < Exception; end
+    class RequiredFieldMissing < ObjectionException; end
+    class RequiredFieldEmpty   < ObjectionException; end
+    class UnknownFieldGiven    < ObjectionException; end
 
     def self.requires(*args)
       @required_fields = args
@@ -15,8 +15,17 @@ module Objection
     end
 
     def initialize(*args)
-      # raise RequiredFieldsMissing, ':required_1, :required_2' unless required_fields.nil?
       @values = normalize_input(*args)
+
+      if unknown_fields_present?
+        raise UnknownFieldGiven, unknown_fields.join(', ')
+      end
+      if missing_required_fields?
+        raise RequiredFieldMissing, missing_required_fields.join(', ')
+      end
+      if blank_required_fields?
+        raise RequiredFieldEmpty, blank_required_fields.join(', ')
+      end
     end
 
     def method_missing(method, *args)
@@ -26,7 +35,7 @@ module Objection
           raise UnknownFieldGiven, field
         end
         if required_field?(field) && (args[0] == '' || args[0].nil?)
-          raise RequiredFieldMadeEmpty, field
+          raise RequiredFieldEmpty, field
         end
         @values[field] = args[0]
       else
@@ -53,20 +62,38 @@ module Objection
         known_fields.include?(field)
       end
 
-      def unknown_fields_present?(array_fields)
-        unknown_fields(array_fields).any?
+      def unknown_fields_present?
+        unknown_fields.any?
       end
 
-      def unknown_fields(array_fields)
-        array_fields - known_fields
+      def unknown_fields
+        present_fields - known_fields
       end
 
-      def missing_required_fields(array_fields)
-        required_fields - array_fields
+      def blank_required_fields?
+        blank_required_fields.any?
+      end
+
+      def blank_required_fields
+        required_fields.select do |field|
+          @values[field] == '' || @values[field].nil?
+        end
+      end
+
+      def missing_required_fields?
+        missing_required_fields.any?
+      end
+
+      def missing_required_fields
+        required_fields - present_fields
       end
 
       def required_field?(field)
         required_fields.include?(field)
+      end
+
+      def present_fields
+        @values.keys
       end
 
       def required_fields

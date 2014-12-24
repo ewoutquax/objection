@@ -24,15 +24,16 @@ describe Objection do
     let(:object) { build_object_for_required_fields }
 
     it 'can be defined and fetched' do
-      obj = DemoRequires.new
-      obj_more = DemoRequiresMore.new
+      obj = DemoRequires.new(required_1: 'dummy', required_2: 'dummy')
+      obj_more = DemoRequiresMore.new(required_3: 'dummy', required_4: 'dummy')
 
       expect(obj.send(:required_fields)).to eq([:required_1, :required_2])
       expect(obj_more.send(:required_fields)).to eq([:required_3, :required_4])
     end
 
     it 'builds a list of missing required fields' do
-      result = object.send(:missing_required_fields, [:field_1])
+      expect(object).to receive(:present_fields).and_return([:field_1])
+      result = object.send(:missing_required_fields)
       expect(result).to eq([:field_2])
     end
 
@@ -42,8 +43,8 @@ describe Objection do
     end
 
     it 'raises an error, when a required field is blanked' do
-      expect{object.field_1 = ''}.to raise_error(Objection::Base::RequiredFieldMadeEmpty, 'field_1')
-      expect{object.field_2 = nil}.to raise_error(Objection::Base::RequiredFieldMadeEmpty, 'field_2')
+      expect{object.field_1 = ''}.to raise_error(Objection::Base::RequiredFieldEmpty, 'field_1')
+      expect{object.field_2 = nil}.to raise_error(Objection::Base::RequiredFieldEmpty, 'field_2')
     end
 
     def build_object_for_required_fields
@@ -85,13 +86,31 @@ describe Objection do
     end
 
     it 'optional fields can be queried' do
-      obj = DemoOptionals.new(field_1: 'value_1', field_2: 'value_2')
-      expect(obj.field_1).to eq('value_1')
-      expect(obj.field_2).to eq('value_2')
+      obj = DemoOptionals.new(optional_1: 'value_1', optional_2: 'value_2')
+      expect(obj.optional_1).to eq('value_1')
+      expect(obj.optional_2).to eq('value_2')
     end
 
-    it 'raises an error. when not all expected fields are supplied' do
-      expect{DemoRequires.new}.to raise_error(Objection::Base::RequiredFieldsMissing, ':required_1, :required_2')
+    it 'required fields can be queried' do
+      obj = DemoRequires.new(required_1: 'value_1', required_2: 'value_2')
+      expect(obj.required_1).to eq('value_1')
+      expect(obj.required_2).to eq('value_2')
+    end
+
+    it 'raises an error. when unknown fields are supplied' do
+      expect{DemoOptionals.new(unknown_field: 'dummy')}.to raise_error(Objection::Base::UnknownFieldGiven, 'unknown_field')
+    end
+
+    it 'raises an error. when not all required fields are supplied' do
+      expect{DemoRequires.new(required_2: 'dummy')}.to raise_error(Objection::Base::RequiredFieldMissing, 'required_1')
+    end
+
+    it 'raises an error, when a required field is blank' do
+      expect{DemoRequires.new(required_1: 'value', required_2: '')}.to raise_error(Objection::Base::RequiredFieldEmpty, 'required_2')
+    end
+
+    it 'raises an error, when a required field is nil' do
+      expect{DemoRequires.new(required_1: nil, required_2: 'value')}.to raise_error(Objection::Base::RequiredFieldEmpty, 'required_1')
     end
   end
 
@@ -143,17 +162,18 @@ describe Objection do
     end
 
     it 'builds a list of the unknown fields' do
-      expect(obj.send(:unknown_fields, [:field_1, :field_2, :fields_3])).to eq([:fields_3])
+      expect(obj).to receive(:present_fields).and_return([:field_1, :field_2, :fields_3])
+      expect(obj.send(:unknown_fields)).to eq([:fields_3])
     end
 
     it 'return true, when unkown fields are present' do
       allow(obj).to receive(:unknown_fields).and_return([:field_1])
-      expect(obj.send(:unknown_fields_present?, nil)).to eq(true)
+      expect(obj.send(:unknown_fields_present?)).to eq(true)
     end
 
     it 'return false, when unkown fields are absent' do
       allow(obj).to receive(:unknown_fields).and_return([])
-      expect(obj.send(:unknown_fields_present?, nil)).to eq(false)
+      expect(obj.send(:unknown_fields_present?)).to eq(false)
     end
 
     def build_object_for_known_fields
