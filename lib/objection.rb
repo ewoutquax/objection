@@ -18,42 +18,39 @@ module Objection
     def initialize(*args)
       @values = normalize_input(*args)
 
+      check_values!
       define_accessors
-
-      if unknown_fields_present?
-        raise UnknownFieldGiven, unknown_fields.join(', ')
-      end
-      if missing_required_fields?
-        raise RequiredFieldMissing, missing_required_fields.join(', ')
-      end
-      if blank_required_fields?
-        raise RequiredFieldEmpty, blank_required_fields.join(', ')
-      end
     end
 
     private
       def define_accessors
-        known_fields.each{|field| define_getter(field.to_s)}
-        optional_fields.each{|field| define_optional_setter(field.to_s)}
-        required_fields.each{|field| define_required_setter(field.to_s)}
+        known_fields.each{|field| define_getter(field)}
+        optional_fields.each{|field| define_optional_setter(field)}
+        required_fields.each{|field| define_required_setter(field)}
+      end
+
+      def check_values!
+        raise UnknownFieldGiven, unknown_fields.join(', ')             if unknown_fields_present?
+        raise RequiredFieldMissing, missing_required_fields.join(', ') if missing_required_fields?
+        raise RequiredFieldEmpty, blank_required_fields.join(', ')     if blank_required_fields?
       end
 
       def define_getter(fieldname)
-        self.class.send(:define_method, fieldname) do
-          @values[fieldname.to_sym]
+        self.class.send(:define_method, "#{fieldname}") do
+          @values[fieldname]
         end
       end
 
       def define_optional_setter(fieldname)
         self.class.send(:define_method, "#{fieldname}=") do |arg|
-          @values[fieldname.to_sym] = arg
+          @values[fieldname] = arg
         end
       end
 
       def define_required_setter(fieldname)
         self.class.send(:define_method, "#{fieldname}=") do |arg|
           raise RequiredFieldMadeEmpty, fieldname if arg.nil? || arg == ''
-          @values[fieldname.to_sym] = arg
+          @values[fieldname] = arg
         end
       end
 
@@ -85,7 +82,8 @@ module Objection
 
       def blank_required_fields
         required_fields.select do |field|
-          @values[field] == '' || @values[field].nil?
+          value = @values[field]
+          value == '' || value.nil?
         end
       end
 
