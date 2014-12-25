@@ -43,13 +43,14 @@ describe Objection do
     end
 
     it 'raises an error, when a required field is blanked' do
-      expect{object.field_1 = ''}.to raise_error(Objection::Base::RequiredFieldEmpty, 'field_1')
-      expect{object.field_2 = nil}.to raise_error(Objection::Base::RequiredFieldEmpty, 'field_2')
+      expect{object.field_1 = ''}.to raise_error(Objection::Base::RequiredFieldMadeEmpty, 'field_1')
+      expect{object.field_2 = nil}.to raise_error(Objection::Base::RequiredFieldMadeEmpty, 'field_2')
     end
 
     def build_object_for_required_fields
       obj = Objection::Base.new
       obj.class.instance_variable_set('@required_fields', [:field_1, :field_2])
+      obj.send(:define_accessors)
       obj
     end
   end
@@ -73,7 +74,7 @@ describe Objection do
 
     it 'raises an error, if an unknown field is given' do
       obj = DemoOptionals.new
-      expect{obj.unknown_field = 'mwhoehaha'}.to raise_error(Objection::Base::UnknownFieldGiven, 'unknown_field')
+      expect{obj.unknown_field = 'mwhoehaha'}.to raise_error(NoMethodError)
     end
   end
 
@@ -180,6 +181,34 @@ describe Objection do
       obj = Objection::Base.new
       obj.class.instance_variable_set('@required_fields', [:field_1])
       obj.class.instance_variable_set('@optional_fields', [:field_2])
+      obj
+    end
+  end
+
+  context 'define accessors' do
+    let(:object) { build_object_for_accessors }
+
+    before do
+      object.send(:define_accessors)
+    end
+
+    it 'object responds to getter for required field' do
+      expect(object.respond_to?(:required_1)).to eq(true)
+    end
+    it 'object responds to setter for required field' do
+      expect(object.respond_to?(:required_1=)).to eq(true)
+    end
+    it 'object responds to getter for optional field' do
+      expect(object.respond_to?(:optional_1)).to eq(true)
+    end
+    it 'object responds to setter for optional field' do
+      expect(object.respond_to?(:optional_1=)).to eq(true)
+    end
+
+    def build_object_for_accessors
+      obj = Objection::Base.new
+      allow(obj).to receive(:required_fields).and_return([:required_1])
+      allow(obj).to receive(:optional_fields).and_return([:optional_1])
       obj
     end
   end

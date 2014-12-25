@@ -2,10 +2,11 @@ require "objection/version"
 
 module Objection
   class Base
-    class ObjectionException   < Exception; end
-    class RequiredFieldMissing < ObjectionException; end
-    class RequiredFieldEmpty   < ObjectionException; end
-    class UnknownFieldGiven    < ObjectionException; end
+    class ObjectionException     < Exception; end
+    class RequiredFieldMissing   < ObjectionException; end
+    class RequiredFieldEmpty     < ObjectionException; end
+    class RequiredFieldMadeEmpty < ObjectionException; end
+    class UnknownFieldGiven      < ObjectionException; end
 
     def self.requires(*args)
       @required_fields = args
@@ -16,6 +17,8 @@ module Objection
 
     def initialize(*args)
       @values = normalize_input(*args)
+
+      define_accessors
 
       if unknown_fields_present?
         raise UnknownFieldGiven, unknown_fields.join(', ')
@@ -28,22 +31,32 @@ module Objection
       end
     end
 
-    def method_missing(method, *args)
-      if method[-1] == '='
-        field = method[0..-2].to_sym
-        unless known_field?(field)
-          raise UnknownFieldGiven, field
-        end
-        if required_field?(field) && (args[0] == '' || args[0].nil?)
-          raise RequiredFieldEmpty, field
-        end
-        @values[field] = args[0]
-      else
-        @values[method]
-      end
-    end
-
     private
+      def define_accessors
+        known_fields.each{|field| define_getter(field.to_s)}
+        optional_fields.each{|field| define_optional_setter(field.to_s)}
+        required_fields.each{|field| define_required_setter(field.to_s)}
+      end
+
+      def define_getter(fieldname)
+        self.class.send(:define_method, fieldname) do
+          @values[fieldname.to_sym]
+        end
+      end
+
+      def define_optional_setter(fieldname)
+        self.class.send(:define_method, "#{fieldname}=") do |arg|
+          @values[fieldname.to_sym] = arg
+        end
+      end
+
+      def define_required_setter(fieldname)
+        self.class.send(:define_method, "#{fieldname}=") do |arg|
+          raise RequiredFieldMadeEmpty, fieldname if arg.nil? || arg == ''
+          @values[fieldname.to_sym] = arg
+        end
+      end
+
       def normalize_input(*args)
         if args.any?
           args[0].inject({}) do |out, (key, value)|
@@ -56,10 +69,6 @@ module Objection
 
       def known_fields
         required_fields + optional_fields
-      end
-
-      def known_field?(field)
-        known_fields.include?(field)
       end
 
       def unknown_fields_present?
@@ -86,10 +95,6 @@ module Objection
 
       def missing_required_fields
         required_fields - present_fields
-      end
-
-      def required_field?(field)
-        required_fields.include?(field)
       end
 
       def present_fields
