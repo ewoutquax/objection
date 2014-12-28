@@ -1,4 +1,5 @@
 require "objection/version"
+require "objection/structure_comparer"
 
 module Objection
   class Base
