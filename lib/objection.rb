@@ -14,12 +14,17 @@ module Objection
     def self.optionals(*args)
       @optional_fields = args
     end
+    def self.input_types(*args)
+      @input_types = args[0]
+      true
+    end
 
     def initialize(*args)
       @values = normalize_input(*args)
 
       check_values!
       define_accessors
+      check_types!
     end
 
     private
@@ -35,6 +40,17 @@ module Objection
         raise RequiredFieldEmpty, blank_required_fields.join(', ')     if blank_required_fields?
       end
 
+      def check_types!
+        input_types.each do |field, type|
+          value = self.send(field)
+          unless value.nil?
+            unless value.is_a?(type)
+              raise TypeError, "#{field} has the wrong type; #{type} was expected, but got #{value.class}"
+            end
+          end
+        end
+      end
+
       def define_getter(fieldname)
         self.class.send(:define_method, "#{fieldname}") do
           @values[fieldname]
@@ -44,6 +60,7 @@ module Objection
       def define_optional_setter(fieldname)
         self.class.send(:define_method, "#{fieldname}=") do |arg|
           @values[fieldname] = arg
+          check_types!
         end
       end
 
@@ -51,6 +68,7 @@ module Objection
         self.class.send(:define_method, "#{fieldname}=") do |arg|
           raise RequiredFieldMadeEmpty, fieldname if arg.nil? || arg == ''
           @values[fieldname] = arg
+          check_types!
         end
       end
 
@@ -105,6 +123,10 @@ module Objection
 
       def optional_fields
         self.class.instance_variable_get('@optional_fields') || []
+      end
+
+      def input_types
+        self.class.instance_variable_get('@input_types') || {}
       end
   end
 end

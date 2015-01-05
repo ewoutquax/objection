@@ -20,19 +20,40 @@ Or install it yourself as:
 
 Build your own class, and let it inherit from Objection::Base.
 Set required fields with the requires-command, and optional fields with the optional-command
+```ruby
+class MyContract < Objection::Base
+  requires :required_1, :required_2
+  optionals :optional_1, :optional_2
+end
 
-    class MyContract < Objection::Base
-      requires :required_1, :required_2
-      optional :optional_1, :optional_2
-    end
+contract = MyContract.new(required_1: 'value', required_2: 'other-value', optional_1: 'more info')
+contract.optional_2 = 'other info'
 
-    contract = MyContract.new(required_1: 'value', required_2: 'other-value', optional_1: 'more info')
-    contract.optional_2 = 'other info'
-
-    contract.required_1 => 'value'
-    contract.optional_2 => 'other info'
+contract.required_1 => 'value'
+contract.optional_2 => 'other info'
+```
 
 The gem will protect you from using unknown fields, and from suppling blank values for the required fields
+
+## Fields with type
+
+Declare via:
+
+```ruby
+class MyContract < Objection::Base
+  requires :required_1, :required_2
+  optionals :optional_1, :optional_2
+end
+
+input_types(
+  required_1: Fixnum,
+  required_2: String,
+  optional_1: Float
+)
+```
+
+During initialization the type of the fields are checked. After initialization, when a lone field is updated, the type is checked again.
+Fields without declared input_type can have any type of value.
 
 
 ## Contributing
