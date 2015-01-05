@@ -1,5 +1,6 @@
 require "objection/version"
-require "objection/structure_comparer"
+require "objection/structure/comparer"
+require "objection/structure/extractor"
 
 module Objection
   class Base
@@ -97,7 +98,7 @@ module Objection
       end
 
       def present_fields
-        @values.keys
+        Objection::Structure::Extractor.extract(@values)
       end
 
       def required_fields

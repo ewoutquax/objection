@@ -1,8 +1,8 @@
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
-describe Objection::StructureComparer do
+describe Objection::Structure::Comparer do
   context 'detect missing fields' do
-    let(:comparer) { Objection::StructureComparer.new(@structure_in) }
+    let(:comparer) { Objection::Structure::Comparer.new(@structure_in) }
 
     it 'from 1 level structures' do
       @structure_in = [:field_1, :field_2]
@@ -23,7 +23,7 @@ describe Objection::StructureComparer do
   end
 
   context 'detect unknown fields' do
-    let(:comparer) { Objection::StructureComparer.new(@structure_in) }
+    let(:comparer) { Objection::Structure::Comparer.new(@structure_in) }
 
     it 'from 1 level structures' do
       @structure_in = [:field_1, :field_2]
