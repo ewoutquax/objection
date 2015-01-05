@@ -2,6 +2,7 @@ require_relative '../spec_helper'
 require_relative '../support/demo_basic'
 require_relative '../support/demo_requires'
 require_relative '../support/demo_optionals'
+require_relative '../support/demo_typed'
 
 describe Objection do
   before do
@@ -75,6 +76,39 @@ describe Objection do
     it 'raises an error, if an unknown field is given' do
       obj = DemoOptionals.new
       expect{obj.unknown_field = 'mwhoehaha'}.to raise_error(NoMethodError)
+    end
+  end
+
+  context 'typed_input' do
+    let(:obj) { build_object_for_known_fields }
+
+    it 'can be initialized' do
+      expect(obj).to be_kind_of(DemoTyped)
+    end
+    it 'raises a type error, when a required field is populated incorrectly' do
+      expect{DemoTyped.new(required_1: 1.1, required_2: 'input')}.to raise_error(TypeError, 'required_1 has the wrong type; Fixnum was expected, but got Float')
+    end
+    it 'raises a type error, when an optional field is populated incorrectly' do
+      expect{DemoTyped.new(required_1: 1, required_2: 'input', optional_1: 'incorrect')}.to raise_error(TypeError, 'optional_1 has the wrong type; Float was expected, but got String')
+    end
+    it 'can change the type of a field without type' do
+      obj.optional_2 = 'String'
+      obj.optional_2 = 1.1
+      expect(obj.optional_2).to eq(1.1)
+    end
+    it 'raises a type error, when a required field is populated incorrectly' do
+      expect{obj.required_1 = 'incorrect'}.to raise_error(TypeError, 'required_1 has the wrong type; Fixnum was expected, but got String')
+    end
+    it 'raises a type error, when an optional field is populated incorrectly' do
+      expect{obj.optional_1 = 'incorrect'}.to raise_error(TypeError, 'optional_1 has the wrong type; Float was expected, but got String')
+    end
+    it 'raises nothing, when an optional field is nilled' do
+      obj.optional_1 = nil
+      expect(obj.optional_1).to be_nil
+    end
+
+    def build_object_for_known_fields
+      obj = DemoTyped.new(required_1: 1, required_2: 'input', optional_1: 1.1)
     end
   end
 
