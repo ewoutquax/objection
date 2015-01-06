@@ -53,9 +53,37 @@ class MyContract < Objection::Base
 end
 ```
 
-During initialization the type of the fields are checked. After initialization, when a lone field is updated, the type is checked again.
-Fields without declared input_type can have any type of value.
+## Nested structures
 
+Consider the following classes:
+
+```ruby
+class DemoNestedCar < Objection::Base
+  requires  :car_model
+  optionals :licence_plate
+  input_types(
+    car_model: String
+  )
+end
+
+class DemoNestedBooking < Objection::Base
+  requires :booking_id, :booking_date
+  optionals :car
+  input_types(
+    booking_date: Date,
+    car:          DemoNestedCar,
+  )
+end
+```
+
+When initializing the class DemoNestedBooking, and suppliing a hash for field 'car', the gem will cast the type.
+The class 'DemoNestedCar' will be instantiated, with the hash of 'car' as input.
+After instantiating, the following will be true:
+
+```ruby
+obj.car.is_a?(DemoNestedCar)
+obj.car.car_model == "<value given via ['car']['car_model']>"
+```
 
 ## Contributing
 
