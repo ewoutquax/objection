@@ -43,13 +43,14 @@ Declare via:
 class MyContract < Objection::Base
   requires :required_1, :required_2
   optionals :optional_1, :optional_2
-end
 
-input_types(
-  required_1: Fixnum,
-  required_2: String,
-  optional_1: Float
-)
+  input_types(
+    required_1: Fixnum,
+    required_2: String,
+    optional_1: Float
+  )
+
+end
 ```
 
 During initialization the type of the fields are checked. After initialization, when a lone field is updated, the type is checked again.
