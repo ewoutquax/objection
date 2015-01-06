@@ -3,6 +3,7 @@ require_relative '../support/demo_basic'
 require_relative '../support/demo_requires'
 require_relative '../support/demo_optionals'
 require_relative '../support/demo_typed'
+require_relative '../support/demo_nested'
 
 describe Objection do
   before do
@@ -108,7 +109,23 @@ describe Objection do
     end
 
     def build_object_for_known_fields
-      obj = DemoTyped.new(required_1: 1, required_2: 'input', optional_1: 1.1)
+      DemoTyped.new(required_1: 1, required_2: 'input', optional_1: 1.1)
+    end
+  end
+
+  context 'nested_input' do
+    it 'initializes the object, when the optional structures is not used' do
+      obj = DemoNestedBooking.new(booking_id: 1, booking_date: Date.today)
+      expect(obj).to be_kind_of(DemoNestedBooking)
+      expect(obj.booking_date).to eq(Date.today)
+    end
+
+    it 'converts the hash to the given object' do
+      obj = DemoNestedBooking.new(booking_id: 1, booking_date: Date.today, car: {car_model: 'Opel'})
+      expect(obj).to be_kind_of(DemoNestedBooking)
+      expect(obj.booking_date).to eq(Date.today)
+      expect(obj.car).to be_kind_of(DemoNestedCar)
+      expect(obj.car.car_model).to eq('Opel')
     end
   end
 

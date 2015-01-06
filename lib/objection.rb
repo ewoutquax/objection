@@ -24,6 +24,7 @@ module Objection
 
       check_values!
       define_accessors
+      apply_structures!
       check_types!
     end
 
@@ -38,6 +39,15 @@ module Objection
         raise UnknownFieldGiven, unknown_fields.join(', ')             if unknown_fields_present?
         raise RequiredFieldMissing, missing_required_fields.join(', ') if missing_required_fields?
         raise RequiredFieldEmpty, blank_required_fields.join(', ')     if blank_required_fields?
+      end
+
+      def apply_structures!
+        input_types.each do |field, type|
+          value = self.send(field)
+          if !value.is_a?(type) && value.is_a?(Hash)
+            self.send("#{field}=", type.new(value))
+          end
+        end
       end
 
       def check_types!
