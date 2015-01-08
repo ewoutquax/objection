@@ -127,6 +127,15 @@ describe Objection do
       expect(obj.car).to be_kind_of(DemoNestedCar)
       expect(obj.car.car_model).to eq('Opel')
     end
+
+    it 'converts each item in an array to the given object' do
+      obj = DemoNestedBooking.new(booking_id: 1, booking_date: Date.today, car: [{car_model: 'Opel'}])
+      expect(obj).to be_kind_of(DemoNestedBooking)
+      expect(obj.booking_date).to eq(Date.today)
+      expect(obj.car).to be_kind_of(Array)
+      expect(obj.car.first).to be_kind_of(DemoNestedCar)
+      expect(obj.car.first.car_model).to eq('Opel')
+    end
   end
 
   context 'initialize' do
