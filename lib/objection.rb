@@ -28,6 +28,22 @@ module Objection
       check_types!
     end
 
+    def to_hash
+      hash = {}
+      @values.each_pair do |key, value|
+        if value.is_a?(Array)
+          hash[key] = value.inject([]) do |items, item|
+            items << item.to_hash
+          end
+        elsif value.respond_to?(:to_hash)
+          hash[key] = value.to_hash
+        else
+          hash[key] = value
+        end
+      end
+      hash
+    end
+
     private
       def define_accessors
         known_fields.each{|field| define_getter(field)}
@@ -45,7 +61,14 @@ module Objection
         input_types.each do |field, type|
           value = self.send(field)
           if !value.is_a?(type) && value.is_a?(Hash)
-            self.send("#{field}=", type.new(value))
+            @values[field] = type.new(value)
+          end
+          if !value.is_a?(type) && value.is_a?(Array)
+            values = []
+            value.each do |item|
+              values << type.new(item)
+            end
+            @values[field] = values
           end
         end
       end
@@ -54,7 +77,7 @@ module Objection
         input_types.each do |field, type|
           value = self.send(field)
           unless value.nil?
-            unless value.is_a?(type)
+            if !(value.is_a?(type) || value.is_a?(Array))
               raise TypeError, "#{field} has the wrong type; #{type} was expected, but got #{value.class}"
             end
           end
@@ -83,7 +106,7 @@ module Objection
       end
 
       def normalize_input(*args)
-        if args.any?
+        if args.any? && args[0].is_a?(Hash)
           args[0].inject({}) do |out, (key, value)|
             out.merge(key.to_sym => value)
           end
