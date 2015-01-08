@@ -28,6 +28,22 @@ module Objection
       check_types!
     end
 
+    def to_hash
+      hash = {}
+      @values.each_pair do |key, value|
+        if value.is_a?(Array)
+          hash[key] = value.inject([]) do |items, item|
+            items << item.to_hash
+          end
+        elsif value.respond_to?(:to_hash)
+          hash[key] = value.to_hash
+        else
+          hash[key] = value
+        end
+      end
+      hash
+    end
+
     private
       def define_accessors
         known_fields.each{|field| define_getter(field)}

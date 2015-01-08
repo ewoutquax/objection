@@ -272,4 +272,19 @@ describe Objection do
       obj
     end
   end
+
+  context 'to hash' do
+    it 'converts a single layered object to hash' do
+      obj = DemoNestedBooking.new(booking_id: 1, booking_date: Date.today)
+      expect(obj.to_hash).to eq({booking_id: 1, booking_date: Date.today})
+    end
+    it 'converts an object with converted hash into a hash' do
+      obj = DemoNestedBooking.new(booking_id: 1, booking_date: Date.today, car: {car_model: 'Opel'})
+      expect(obj.to_hash).to eq({booking_id: 1, booking_date: Date.today, car: {car_model: 'Opel'}})
+    end
+    it 'converts an object with converted array into a hash' do
+      obj = DemoNestedBooking.new(booking_id: 1, booking_date: Date.today, car: [{car_model: 'Opel'}])
+      expect(obj.to_hash).to eq({booking_id: 1, booking_date: Date.today, car: [{car_model: 'Opel'}]})
+    end
+  end
 end
