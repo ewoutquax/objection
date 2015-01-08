@@ -88,6 +88,11 @@ obj.car.car_model == "<value given via ['car']['car_model']>"
 This also works for arrays. When an array is given where an object is suspected, then each item within the array will be
 convered into the declared object.
 
+## To hash
+
+For better connection with other services, objection can convert its values to an hash, with the `to_hash` function.
+This operation with recursivly with nested objects and arrays of objects.
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/objection/fork )
