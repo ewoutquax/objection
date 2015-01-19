@@ -52,9 +52,9 @@ module Objection
       end
 
       def check_values!
-        raise UnknownFieldGiven, unknown_fields.join(', ')             if unknown_fields_present?
-        raise RequiredFieldMissing, missing_required_fields.join(', ') if missing_required_fields?
-        raise RequiredFieldEmpty, blank_required_fields.join(', ')     if blank_required_fields?
+        raise UnknownFieldGiven, unknown_fields.join(', ') + ' for class: ' + self.class.name             if unknown_fields_present?
+        raise RequiredFieldMissing, missing_required_fields.join(', ') + ' for class: ' + self.class.name if missing_required_fields?
+        raise RequiredFieldEmpty, blank_required_fields.join(', ') + ' for class: ' + self.class.name     if blank_required_fields?
       end
 
       def apply_structures!
