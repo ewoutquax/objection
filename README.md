@@ -85,13 +85,27 @@ obj.car.is_a?(DemoNestedCar)
 obj.car.car_model == "<value given via ['car']['car_model']>"
 ```
 
-This also works for arrays. When an array is given where an object is suspected, then each item within the array will be
-convered into the declared object.
+This also works for arrays. When an array is given where an object is suspected, then each item within the array will be converted into the declared object.
+
+## Leasurely mode
+When Objection is instantiated with unknown fields in the parameters (a field not declared as optional or required), then an error will be thrown, because the contract is broken.
+But sometimes that is just how the world works, and the contract has to be breakable.
+Introduce the Leasure-mode, which can be set per contract by inheriting from the Leasurely-module:
+
+```ruby
+class DemoLeasurely < Objection::Leasurely::Base
+  requires :required_1
+end
+
+obj = DemoLeasurely.new(required_1: 'dummy', unknown_1: 'dummy')
+```
+The instantiation above will not raise an error. 
+**Beware**: the field 'unknown_1' will not be referencable via a getter-function.
 
 ## To hash
 
 For better connection with other services, objection can convert its values to an hash, with the `to_hash` function.
-This operation with recursivly with nested objects and arrays of objects.
+This operation works recursivly with nested objects and arrays of objects.
 
 ## Contributing
 

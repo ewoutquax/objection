@@ -1,5 +1,6 @@
 require_relative '../spec_helper'
 require_relative '../support/demo_basic'
+require_relative '../support/demo_leasurely'
 require_relative '../support/demo_requires'
 require_relative '../support/demo_optionals'
 require_relative '../support/demo_typed'
@@ -77,6 +78,26 @@ describe Objection do
     it 'raises an error, if an unknown field is given' do
       obj = DemoOptionals.new
       expect{obj.unknown_field = 'mwhoehaha'}.to raise_error(NoMethodError)
+    end
+  end
+
+  context 'unknown fields in leasurely-mode' do
+    it 'can be defined and fetched' do
+      obj = DemoLeasurely.new(required_1: 'dummy')
+
+      expect(obj).to be_kind_of(DemoLeasurely)
+      expect(obj).to be_kind_of(Objection::Leasurely::Base)
+      expect(obj.send(:required_fields)).to eq([:required_1])
+      expect(obj.send(:optional_fields)).to eq([])
+    end
+
+    it 'raises no error, if an unknown field is given' do
+      obj = DemoLeasurely.new(required_1: 'dummy', unknown_1: 'dummy')
+
+      expect(obj).to be_kind_of(DemoLeasurely)
+      expect(obj).to be_kind_of(Objection::Leasurely::Base)
+      expect(obj.send(:required_fields)).to eq([:required_1])
+      expect(obj.send(:optional_fields)).to eq([])
     end
   end
 
@@ -159,19 +180,19 @@ describe Objection do
     end
 
     it 'raises an error. when unknown fields are supplied' do
-      expect{DemoOptionals.new(unknown_field: 'dummy')}.to raise_error(Objection::Base::UnknownFieldGiven, 'unknown_field')
+      expect{DemoOptionals.new(unknown_field: 'dummy')}.to raise_error(Objection::Base::UnknownFieldGiven, 'unknown_field for class: DemoOptionals')
     end
 
     it 'raises an error. when not all required fields are supplied' do
-      expect{DemoRequires.new(required_2: 'dummy')}.to raise_error(Objection::Base::RequiredFieldMissing, 'required_1')
+      expect{DemoRequires.new(required_2: 'dummy')}.to raise_error(Objection::Base::RequiredFieldMissing, 'required_1 for class: DemoRequires')
     end
 
     it 'raises an error, when a required field is blank' do
-      expect{DemoRequires.new(required_1: 'value', required_2: '')}.to raise_error(Objection::Base::RequiredFieldEmpty, 'required_2')
+      expect{DemoRequires.new(required_1: 'value', required_2: '')}.to raise_error(Objection::Base::RequiredFieldEmpty, 'required_2 for class: DemoRequires')
     end
 
     it 'raises an error, when a required field is nil' do
-      expect{DemoRequires.new(required_1: nil, required_2: 'value')}.to raise_error(Objection::Base::RequiredFieldEmpty, 'required_1')
+      expect{DemoRequires.new(required_1: nil, required_2: 'value')}.to raise_error(Objection::Base::RequiredFieldEmpty, 'required_1 for class: DemoRequires')
     end
   end
 

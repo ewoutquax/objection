@@ -162,4 +162,12 @@ module Objection
         self.class.instance_variable_get('@input_types') || {}
       end
   end
+
+  module Leasurely
+    class Base < ::Objection::Base
+      def unknown_fields_present?
+        false
+      end
+    end
+  end
 end
