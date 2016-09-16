@@ -33,7 +33,11 @@ module Objection
       @values.each_pair do |key, value|
         if value.is_a?(Array)
           hash[key] = value.inject([]) do |items, item|
-            items << item.to_hash
+            if item.respond_to?(:to_hash)
+              items << item.to_hash
+            else
+              items << item
+            end
           end
         elsif value.respond_to?(:to_hash)
           hash[key] = value.to_hash
