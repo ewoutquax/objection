@@ -64,7 +64,7 @@ module Objection
       def apply_structures!
         input_types.each do |field, type|
           value = self.send(field)
-          if !value.is_a?(type) && value.is_a?(Hash)
+          if !value.is_a?(type) && ( value.is_a?(Hash) || value.class.to_s == 'ActionController::Parameters' )
             @values[field] = type.new(value)
           end
           if !value.is_a?(type) && value.is_a?(Array)
@@ -110,7 +110,7 @@ module Objection
       end
 
       def normalize_input(*args)
-        if args.any? && args[0].is_a?(Hash)
+        if args.any? && ( args[0].is_a?(Hash) || args[0].class.to_s == 'ActionController::Parameters' )
           args[0].inject({}) do |out, (key, value)|
             out.merge(key.to_sym => value)
           end
